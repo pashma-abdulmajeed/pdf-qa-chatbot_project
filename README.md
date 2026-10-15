@@ -95,7 +95,7 @@ pdf-qa-chatbot_project/
 ### 1. Clone the repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/pashma-abdulmajeed/pdf-qa-chatbot_project.git
 cd pdf-qa-chatbot_project
 ```
 

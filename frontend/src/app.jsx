@@ -23,7 +23,7 @@ function App() {
       setUploadMessage("Processing your PDF...");
       setUploaded(false);
 
-      const response = await fetch("http://localhost:5000/api/upload", {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
@@ -63,7 +63,7 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/search", {
+      const response = await fetch("/api/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -277,9 +277,7 @@ function App() {
 
                                 <span>
                                   Relevance{" "}
-                                  {source.score
-                                    ? source.score.toFixed(3)
-                                    : "N/A"}
+                                  {typeof source.score === "number" ? source.score.toFixed(3) : "N/A"}
                                 </span>
 
                               </div>

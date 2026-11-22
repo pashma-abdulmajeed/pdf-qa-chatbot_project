@@ -85,19 +85,25 @@ app.post("/api/upload", upload.single("pdf"), async (req, res) => {
 
     // 3. Generate embeddings loop (Safe batching)
     const embeddings = [];
-    for (const chunk of chunks) {
-      const embeddingResponse = await ai.models.embedContent({
+    const batchSize = 5;
+for (let i = 0; i < chunks.length; i += batchSize) {
+  const batch = chunks.slice(i, i + batchSize);
+  const batchResults = await Promise.all(
+    batch.map((chunk) =>
+      ai.models.embedContent({
         model: "gemini-embedding-001",
         contents: chunk,
         config: {
           taskType: "RETRIEVAL_DOCUMENT",
           outputDimensionality: 768,
         },
-      });
-
-      const vector = embeddingResponse.embeddings[0].values;
-      embeddings.push(vector);
-    }
+      })
+    )
+  );
+  for (const embeddingResponse of batchResults) {
+    embeddings.push(embeddingResponse.embeddings[0].values);
+  }
+}
 
     // 4. Prepare documents for MongoDB
     const documents = chunks.map((chunk, index) => ({
@@ -247,14 +253,23 @@ app.use((error, req, res, next) => {
   });
 });
 
-try {
-  await mongoClient.connect();
-  console.log("MongoDB connected successfully!");
-} catch (error) {
-  console.error("MongoDB connection failed:", error);
-  process.exit(1);
+async function connectDB() {
+  try {
+    if (!mongoClient.topology) {
+      await mongoClient.connect();
+      console.log("MongoDB connected successfully!");
+    }
+  } catch (error) {
+    console.error("MongoDB connection failed:", error);
+  }
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+connectDB();
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
